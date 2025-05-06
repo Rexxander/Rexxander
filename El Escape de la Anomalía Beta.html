@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>INMAI-X: Escape de la Anomalía</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* RESET Y ESTILOS BASE */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none !important; /* Forzar ocultar el cursor en todos los elementos */
+        }
+        
+        body {
+            overflow: hidden;
+            font-family: 'Share Tech Mono', monospace;
+            background: #000;
+            color: #0f0;
+            height: 100vh;
+        }
+
+        /* LOGO INICIAL */
+        #logo-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1.5s;
+            background: radial-gradient(circle, #001a33 0%, #000 100%);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 5rem;
+            color: #ffffff;
+            text-align: center;
+            text-shadow: 0 0 20px #0066ff, 0 0 40px #0066ff;
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite alternate;
+            letter-spacing: 5px;
+            background: linear-gradient(45deg, #ffffff, #0066ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-sub {
+            font-size: 1.5rem;
+            color: #0066ff;
+            opacity: 0.9;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px #0066ff; }
+            100% { text-shadow: 0 0 20px #0066ff, 0 0 30px #0066ff; }
+        }
+
+        /* ESCENA PRINCIPAL */
+        #game-scene {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            opacity: 0;
+            transition: opacity 2s;
+        }
+
+        /* EFECTOS DE FONDO */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                linear-gradient(90deg, rgba(0,255,0,0.1) 1px, transparent 1px) 0 0 / 50px 50px,
+                linear-gradient(0deg, rgba(0,255,0,0.1) 1px, transparent 1px) 0 0 / 50px 50px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .cyber-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, rgba(0,255,0,0.1) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .cyber-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                linear-gradient(45deg, transparent 48%, rgba(0,255,0,0.1) 49%, rgba(0,255,0,0.1) 51%, transparent 52%),
+                linear-gradient(-45deg, transparent 48%, rgba(0,255,0,0.1) 49%, rgba(0,255,0,0.1) 51%, transparent 52%);
+            background-size: 100px 100px;
+            pointer-events: none;
+            z-index: 3;
+            animation: cyberLines 20s linear infinite;
+        }
+
+        @keyframes cyberLines {
+            0% { background-position: 0 0; }
+            100% { background-position: 100px 100px; }
+        }
+
+        /* HUD - INTERFAZ DE USUARIO */
+        #hud {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 20, 0, 0.7);
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            padding: 15px 25px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            z-index: 10;
+            display: none;
+            backdrop-filter: blur(5px);
+        }
+
+        #hud-title {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: #0f0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #collected-fragments {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        /* PANEL DE CONTROLES */
+        #controls-panel {
+            position: fixed !important;
+            bottom: 30px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            background: rgba(0, 10, 0, 0.9) !important;
+            border: 2px solid #00ff00 !important;
+            border-radius: 15px !important;
+            padding: 20px !important;
+            width: 90% !important;
+            max-width: 600px !important;
+            z-index: 1001 !important;
+            display: none !important;
+            backdrop-filter: blur(10px) !important;
+            max-height: 80vh !important;
+            overflow-y: auto !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            pointer-events: auto !important;
+            opacity: 0 !important;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.1) !important;
+        }
+
+        #controls-panel.visible {
+            display: block !important;
+            opacity: 1 !important;
+        }
+
+        #controls-panel.minimized {
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            overflow: hidden !important;
+            opacity: 0 !important;
+        }
+
+        #controls-title {
+            color: #0f0 !important;
+            font-size: 1.1rem !important;
+            text-align: center !important;
+            padding: 0 40px 15px 0 !important;
+            margin: 0 0 20px 0 !important;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.3) !important;
+        }
+
+        .minimize-button {
+            position: absolute !important;
+            top: 0 !important;
+            right: 15px !important;
+            width: 35px !important;
+            height: 35px !important;
+            background: rgba(0, 20, 0, 0.9) !important;
+            border: 2px solid #00ff00 !important;
+            border-radius: 8px !important;
+            color: #00ff00 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            font-size: 16px !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            z-index: 1002 !important;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2) !important;
+            backdrop-filter: blur(5px) !important;
+            pointer-events: auto !important;
+            overflow: hidden !important;
+        }
+
+        .minimize-button::before {
+            content: '▼' !important;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            display: block !important;
+            transform: translateY(0) !important;
+        }
+
+        .minimize-button.minimized::before {
+            content: '▲' !important;
+            transform: translateY(0) !important;
+        }
+
+        .minimize-button:hover {
+            background: rgba(0, 255, 0, 0.2) !important;
+            transform: scale(1.1) !important;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.4) !important;
+        }
+
+        .minimize-button:active {
+            transform: scale(0.95) !important;
+            background: rgba(0, 255, 0, 0.3) !important;
+        }
+
+        .control-item {
+            display: flex !important;
+            justify-content: space-between !important;
+            margin: 8px 0 !important;
+            font-size: 0.9rem !important;
+        }
+
+        .control-key {
+            background: rgba(0, 255, 0, 0.2) !important;
+            border: 1px solid #0f0 !important;
+            padding: 3px 8px !important;
+            border-radius: 3px !important;
+        }
+
+        /* MENSAJES DE ALERTA */
+        #alert-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(200, 0, 0, 0.9);
+            border: 2px solid #f00;
+            border-radius: 15px;
+            padding: 30px 40px;
+            max-width: 90%;
+            text-align: center;
+            z-index: 20;
+            display: none;
+            animation: alert-pulse 1.5s infinite;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #alert-message.visible {
+            opacity: 1;
+        }
+
+        #alert-text {
+            font-size: 2rem;
+            color: #fff;
+            text-shadow: 0 0 10px #fff;
+            margin-bottom: 20px;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+            animation: glitch 0.5s infinite;
+        }
+
+        #alert-subtext {
+            font-size: 1.2rem;
+            color: #ff9999;
+            text-shadow: 0 0 5px #ff9999;
+        }
+
+        /* ANIMACIONES */
+        @keyframes pulse {
+            0% { opacity: 0.8; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.05); }
+        }
+
+        @keyframes alert-pulse {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(255, 0, 0, 0.7);
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(255, 0, 0, 0.9);
+                transform: translate(-50%, -50%) scale(1.02);
+            }
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 2px 0 #0f0, -2px 0 #f00; }
+            25% { text-shadow: -2px 0 #0f0, 2px 0 #f00; }
+            50% { text-shadow: 2px 0 #f00, -2px 0 #0f0; }
+            75% { text-shadow: -2px 0 #f00, 2px 0 #0f0; }
+            100% { text-shadow: 2px 0 #0f0, -2px 0 #f00; }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes rotate {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+
+        /* EFECTOS ESPECIALES */
+        .glitch-text {
+            animation: glitch 1s linear infinite;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(0, 255, 0, 0.05) 0%,
+                rgba(0, 0, 0, 0) 5%
+            );
+            background-size: 100% 8px;
+            pointer-events: none;
+            z-index: 5;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+
+        /* PROGRESS BAR */
+        #progress-container {
+            display: none !important;
+        }
+
+        /* NUEVOS ESTILOS PARA ELEMENTOS ADICIONALES */
+        #power-meter {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(10, 20, 10, 0.95);
+            border: 2px solid #00ffea;
+            border-radius: 18px;
+            padding: 22px 32px 28px 70px;
+            color: #fff;
+            font-size: 1.3rem;
+            display: none;
+            min-width: 320px;
+            box-shadow: 0 0 30px #00fff7a0, 0 0 8px #00ffea;
+            z-index: 1003;
+            backdrop-filter: blur(8px);
+        }
+        #power-icon {
+            position: absolute;
+            left: 18px;
+            top: 32px;
+            font-size: 2.5rem;
+            color: #00ffea;
+            filter: drop-shadow(0 0 8px #00fff7);
+            pointer-events: none;
+        }
+        #power-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.25rem;
+            color: #00ffea;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 8px #00fff7;
+        }
+        #power-bar {
+            width: 220px;
+            height: 28px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ffea;
+            border-radius: 12px;
+            margin-top: 8px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 12px #00fff7a0;
+        }
+        #power-level {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #ffff00, #ff0000);
+            transition: width 0.5s cubic-bezier(0.4,0,0.2,1), background 0.3s;
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 1;
+            border-radius: 12px 0 0 12px;
+            box-shadow: 0 0 16px #00ff00a0;
+        }
+        #power-timer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.3rem;
+            font-family: 'Orbitron', sans-serif;
+            z-index: 2;
+            pointer-events: none;
+            text-shadow: 0 0 8px #000, 0 0 2px #0ff;
+            letter-spacing: 2px;
+        }
+
+        #score-display {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 20, 0, 0.8);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 15px;
+            color: #fff;
+            font-size: 1.2rem;
+            display: none;
+            backdrop-filter: blur(10px);
+        }
+
+        #level-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 20, 0, 0.9);
+            border: 2px solid #00ff00;
+            border-radius: 15px;
+            padding: 20px;
+            color: #fff;
+            font-size: 1.5rem;
+            display: none;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            z-index: 30;
+        }
+
+        .level-text {
+            font-family: 'Orbitron', sans-serif;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+            margin-bottom: 10px;
+        }
+
+        .level-description {
+            font-size: 1rem;
+            color: #fff;
+            margin-top: 10px;
+        }
+
+        /* Estilos adicionales para el panel de controles */
+        .control-section {
+            margin: 15px 0 !important;
+            padding: 10px !important;
+            border: 1px solid rgba(0, 255, 0, 0.3) !important;
+            border-radius: 8px !important;
+            background: rgba(0, 10, 0, 0.5) !important;
+        }
+
+        .section-title {
+            color: #00ff00 !important;
+            font-size: 1.1rem !important;
+            margin-bottom: 10px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            text-shadow: 0 0 5px #00ff00 !important;
+        }
+
+        #controls-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #controls-panel::-webkit-scrollbar-track {
+            background: rgba(0, 20, 0, 0.5);
+            border-radius: 4px;
+        }
+
+        #controls-panel::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 4px;
+        }
+
+        #controls-panel::-webkit-scrollbar-thumb:hover {
+            background: #00cc00;
+        }
+
+        /* PUNTERO PERSONALIZADO */
+        .custom-cursor {
+            width: 20px;
+            height: 20px;
+            background: rgba(0, 255, 0, 0.5);
+            border: 2px solid #00ff00;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: all 0.1s ease;
+            mix-blend-mode: difference;
+        }
+
+        .custom-cursor::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 4px;
+            background: #00ff00;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .custom-cursor.clicking {
+            transform: translate(-50%, -50%) scale(0.8);
+            background: rgba(0, 255, 0, 0.8);
+            border-color: #ffffff;
+        }
+
+        .custom-cursor.hovering {
+            transform: translate(-50%, -50%) scale(1.2);
+            background: rgba(0, 255, 0, 0.8);
+            border-color: #ffffff;
+        }
+
+        /* Asegurar que el cursor esté oculto en la escena de A-Frame */
+        a-scene {
+            cursor: none !important;
+        }
+
+        /* Estilos para la animación de puntos */
+        .score-popup {
+            position: fixed;
+            color: #00ff00;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            pointer-events: none;
+            z-index: 1000;
+            text-shadow: 0 0 10px #00ff00;
+            opacity: 0;
+            transition: all 0.5s ease-out;
+        }
+
+        .score-popup.active {
+            animation: scoreFloat 1s ease-out forwards;
+        }
+
+        @keyframes scoreFloat {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* Estilos mejorados para el botón de VR */
+        .a-enter-vr-button {
+            position: fixed !important;
+            bottom: 20px !important;
+            right: 20px !important;
+            width: 50px !important;
+            height: 50px !important;
+            background: rgba(0, 20, 0, 0.8) !important;
+            border: 2px solid #00ff00 !important;
+            border-radius: 50% !important;
+            color: #00ff00 !important;
+            font-size: 24px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            z-index: 1001 !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2) !important;
+            backdrop-filter: blur(5px) !important;
+            text-transform: none !important;
+            font-family: 'Share Tech Mono', monospace !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            line-height: 1 !important;
+        }
+
+        .a-enter-vr-button:hover {
+            background: rgba(0, 255, 0, 0.2) !important;
+            transform: scale(1.1) !important;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.4) !important;
+        }
+
+        .a-enter-vr-button:active {
+            transform: scale(0.95) !important;
+        }
+
+        .a-enter-vr-button::before {
+            content: 'VR' !important;
+            font-size: 16px !important;
+            letter-spacing: 1px !important;
+        }
+
+        .a-enter-vr-button.exit::before {
+            content: 'EXIT' !important;
+        }
+
+        /* Ocultar el texto original del botón */
+        .a-enter-vr-button .a-enter-vr-text {
+            display: none !important;
+        }
+
+        /* Ajustes para el panel de controles en VR */
+        #controls-panel {
+            position: fixed !important;
+            bottom: 30px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 1001 !important;
+            pointer-events: auto !important;
+        }
+
+        #controls-panel.minimized {
+            height: 50px !important;
+            overflow: hidden !important;
+            cursor: pointer !important;
+            background: rgba(0, 10, 0, 0.9) !important;
+            padding: 0 !important;
+        }
+
+        /* Asegurar que el botón de minimizar esté siempre visible en VR */
+        .a-enter-vr-button ~ .minimize-button {
+            display: flex !important;
+        }
+
+        #alert-message .retry-btn {
+            margin-top: 25px;
+            padding: 12px 36px;
+            background: linear-gradient(90deg, #00ffea 0%, #00ff00 100%);
+            color: #000;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 0 16px #00ffea80, 0 0 4px #00ff00;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            outline: none;
+        }
+        #alert-message .retry-btn:hover {
+            background: linear-gradient(90deg, #00ff00 0%, #00ffea 100%);
+            color: #111;
+            transform: scale(1.07);
+        }
+    </style>
+</head>
+<body>
+    <!-- PUNTERO PERSONALIZADO -->
+    <div class="custom-cursor"></div>
+
+    <!-- PANTALLA DE INICIO -->
+    <div id="logo-container">
+        <div class="logo">INMAI-X</div>
+        <div class="logo-sub">SISTEMA DE SEGURIDAD DIGITAL</div>
+    </div>
+
+    <!-- EFECTO VISUAL -->
+    <div class="scanline"></div>
+
+    <!-- ESCENA DEL JUEGO -->
+    <div id="game-scene">
+        <div class="cyber-grid"></div>
+        <div class="cyber-glow"></div>
+        <div class="cyber-lines"></div>
+        <a-scene cursor="rayOrigin: mouse" embedded>
+            <!-- ENTORNO -->
+            <a-sky color="#000000" material="shader: gradient; topColor: #001a00; bottomColor: #000000"></a-sky>
+            <a-grid material="color: #0a0; opacity: 0.2" rotation="-90 0 0" width="100" height="100" 
+                   position="0 -1 0" cell-size="1" cell-height="0.1"></a-grid>
+
+            <!-- LUCES AMBIENTALES -->
+            <a-light type="ambient" color="#0f0" intensity="0.3"></a-light>
+            <a-light type="point" position="0 5 0" color="#0f0" intensity="0.5"></a-light>
+            <a-light type="hemisphere" color="#0f0" groundColor="#000" intensity="0.5"></a-light>
+
+            <!-- FRAGMENTOS DE CÓDIGO CON LOGO -->
+            <a-entity id="code1" position="-4 1.5 -5">
+                <a-box class="interactive-cube" 
+                       src="empresalogo.jpg" 
+                       scale="0.8 0.8 0.8"
+                       material="shader: standard; metalness: 0.8; roughness: 0.2; color: #ffffff"
+                       animation="property: position; to: -4 2 -5; dir: alternate; dur: 3000; loop: true; easing: easeInOutSine"
+                       animation__rotation="property: rotation; to: 0 360 0; loop: true; dur: 15000; easing: linear"
+                       raycaster="objects: .interactive-cube"
+                       cursor-listener>
+                </a-box>
+            </a-entity>
+
+            <a-entity id="code2" position="4 1.5 -5">
+                <a-box class="interactive-cube"
+                       src="empresalogo.jpg" 
+                       scale="0.8 0.8 0.8"
+                       material="shader: standard; metalness: 0.8; roughness: 0.2; color: #ffffff"
+                       animation="property: position; to: 4 2 -5; dir: alternate; dur: 3000; loop: true; easing: easeInOutSine"
+                       animation__rotation="property: rotation; to: 0 360 0; loop: true; dur: 15000; easing: linear"
+                       raycaster="objects: .interactive-cube"
+                       cursor-listener>
+                </a-box>
+            </a-entity>
+
+            <a-entity id="code3" position="0 1.5 5">
+                <a-box class="interactive-cube"
+                       src="empresalogo.jpg" 
+                       scale="0.8 0.8 0.8"
+                       material="shader: standard; metalness: 0.8; roughness: 0.2; color: #ffffff"
+                       animation="property: position; to: 0 2 5; dir: alternate; dur: 3000; loop: true; easing: easeInOutSine"
+                       animation__rotation="property: rotation; to: 0 360 0; loop: true; dur: 15000; easing: linear"
+                       raycaster="objects: .interactive-cube"
+                       cursor-listener>
+                </a-box>
+            </a-entity>
+
+            <!-- LUCES ADICIONALES PARA MEJORAR LA VISIBILIDAD DE LOS CUBOS -->
+            <a-light type="point" position="-4 3 -5" color="#ffffff" intensity="0.5"></a-light>
+            <a-light type="point" position="4 3 -5" color="#ffffff" intensity="0.5"></a-light>
+            <a-light type="point" position="0 3 5" color="#ffffff" intensity="0.5"></a-light>
+
+            <!-- PORTAL DE SALIDA -->
+            <a-entity id="exit-portal" position="0 1.5 -10" visible="false">
+                <!-- Marco exterior -->
+                <a-box position="0 0 0" width="3" height="4" depth="0.3" color="#00ff00" opacity="0.3"
+                       animation="property: opacity; to: 0.6; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine">
+                </a-box>
+
+                <!-- Marco interior -->
+                <a-box position="0 0 0.1" width="2.5" height="3.5" depth="0.2" color="#00ff00" opacity="0.2"
+                       animation="property: opacity; to: 0.5; dir: alternate; dur: 2500; loop: true; easing: easeInOutSine">
+                </a-box>
+
+                <!-- Puerta principal -->
+                <a-box position="0 0 0.2" width="2" height="3" depth="0.1" color="#00ff00" opacity="0.4"
+                       animation="property: opacity; to: 0.7; dir: alternate; dur: 3000; loop: true; easing: easeInOutSine">
+                </a-box>
+
+                <!-- Efectos de energía -->
+                <a-entity position="0 0 0.3">
+                    <!-- Anillo exterior -->
+                    <a-ring position="0 0 0" radius="1.2" color="#00ff00" opacity="0.6"
+                           animation="property: scale; to: 1.3 1.3 1.3; dir: alternate; dur: 3000; loop: true; easing: easeInOutSine">
+                    </a-ring>
+                    
+                    <!-- Anillo interior -->
+                    <a-ring position="0 0 0" radius="0.8" color="#00ff00" opacity="0.8"
+                           animation="property: scale; to: 0.9 0.9 0.9; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine">
+                    </a-ring>
+
+                    <!-- Líneas de energía verticales -->
+                    <a-box position="-1.1 0 0" width="0.1" height="3" depth="0.05" color="#00ff00" opacity="0.8"
+                           animation="property: opacity; to: 0.4; dir: alternate; dur: 1500; loop: true; easing: easeInOutSine">
+                    </a-box>
+                    <a-box position="1.1 0 0" width="0.1" height="3" depth="0.05" color="#00ff00" opacity="0.8"
+                           animation="property: opacity; to: 0.4; dir: alternate; dur: 1500; loop: true; easing: easeInOutSine">
+                    </a-box>
+
+                    <!-- Líneas de energía horizontales -->
+                    <a-box position="0 1.4 0" width="2.2" height="0.1" depth="0.05" color="#00ff00" opacity="0.8"
+                           animation="property: opacity; to: 0.4; dir: alternate; dur: 1500; loop: true; easing: easeInOutSine">
+                    </a-box>
+                    <a-box position="0 -1.4 0" width="2.2" height="0.1" depth="0.05" color="#00ff00" opacity="0.8"
+                           animation="property: opacity; to: 0.4; dir: alternate; dur: 1500; loop: true; easing: easeInOutSine">
+                    </a-box>
+                </a-entity>
+
+                <!-- Efectos de partículas -->
+                <a-entity particle-system="preset: dust; particleCount: 50; color: #00ff00; size: 0.1; velocityValue: 0.1 0.1 0.1"
+                         position="0 0 0.4">
+                </a-entity>
+
+                <!-- Símbolo de escape -->
+                <a-text value="ESCAPE" align="center" position="0 0 0.4" scale="0.8 0.8 0.8" color="#00ff00"
+                       animation="property: opacity; to: 1; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine">
+                </a-text>
+
+                <!-- Efectos de brillo -->
+                <a-entity position="0 0 0.5">
+                    <!-- Brillos diagonales -->
+                    <a-box position="-0.8 0.8 0" width="0.1" height="0.1" depth="0.05" color="#00ff00" opacity="0.6"
+                           animation="property: opacity; to: 0.2; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine">
+                    </a-box>
+                    <a-box position="0.8 0.8 0" width="0.1" height="0.1" depth="0.05" color="#00ff00" opacity="0.6"
+                           animation="property: opacity; to: 0.2; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine">
+                    </a-box>
+                    <a-box position="-0.8 -0.8 0" width="0.1" height="0.1" depth="0.05" color="#00ff00" opacity="0.6"
+                           animation="property: opacity; to: 0.2; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine">
+                    </a-box>
+                    <a-box position="0.8 -0.8 0" width="0.1" height="0.1" depth="0.05" color="#00ff00" opacity="0.6"
+                           animation="property: opacity; to: 0.2; dir: alternate; dur: 2000; loop: true; easing: easeInOutSine">
+                    </a-box>
+                </a-entity>
+
+                <!-- Área interactiva -->
+                <a-box position="0 0 0.6" width="2" height="3" depth="0.1" color="#00ff00" opacity="0.01"
+                       cursor-listener
+                       class="interactive-cube"
+                       onclick="escapeSystem()">
+                </a-box>
+            </a-entity>
+
+            <!-- PARTÍCULAS DE AMBIENTE -->
+            <a-entity particle-system="preset: dust; particleCount: 200; color: #0f0; size: 0.1; velocityValue: 0.1 0.1 0.1"></a-entity>
+        </a-scene>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud">
+        <div id="hud-title">ANTIVIRUS ACTIVADOS</div>
+        <div>Fragmentos recolectados: <span id="collected-fragments">0/3</span></div>
+    </div>
+
+    <!-- BARRA DE PROGRESO -->
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+
+    <!-- PANEL DE CONTROLES -->
+    <div id="controls-panel">
+        <div id="controls-title">CONTROLES DEL SISTEMA</div>
+        <div class="minimize-button" onclick="toggleControls('minimize')"></div>
+        
+        <!-- Controles VR -->
+        <div class="control-section">
+            <div class="section-title">CONTROLES VR</div>
+            <div class="control-item">
+                <span>Movimiento:</span>
+                <span class="control-key">Controladores VR</span>
+            </div>
+            <div class="control-item">
+                <span>Interacción:</span>
+                <span class="control-key">Gatillo</span>
+            </div>
+            <div class="control-item">
+                <span>Teleport:</span>
+                <span class="control-key">Pulgar</span>
+            </div>
+        </div>
+
+        <!-- Controles PC -->
+        <div class="control-section">
+            <div class="section-title">CONTROLES PC</div>
+            <div class="control-item">
+                <span>Movimiento:</span>
+                <span class="control-key">W A S D</span>
+            </div>
+            <div class="control-item">
+                <span>Vista:</span>
+                <span class="control-key">Ratón</span>
+            </div>
+            <div class="control-item">
+                <span>Interacción:</span>
+                <span class="control-key">Clic</span>
+            </div>
+        </div>
+
+        <!-- Información General -->
+        <div class="control-section">
+            <div class="section-title">OBJETIVO</div>
+            <div class="control-item">
+                <span>Recolectar:</span>
+                <span class="control-key">Fragmentos de código</span>
+            </div>
+            <div class="control-item">
+                <span>Combo:</span>
+                <span class="control-key">Recolecta rápido</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERTA DE HACKEO -->
+    <div id="alert-message">
+        <div id="alert-text" class="glitch-text">¡ESTÁN A PUNTO DE HACKEARTE!</div>
+        <div id="alert-subtext">Rápido, toca los antivirus para escapar</div>
+    </div>
+
+    <!-- NUEVO PODER DEL SISTEMA -->
+    <div id="power-meter">
+        <span id="power-icon">⚡</span>
+        <div id="power-title">PODER DEL SISTEMA</div>
+        <div id="power-bar">
+            <div id="power-level"></div>
+            <span id="power-timer">60s</span>
+        </div>
+    </div>
+
+    <div id="score-display">
+        <div>PUNTUACIÓN: <span id="score">0</span></div>
+        <div>COMBO: <span id="combo">x1</span></div>
+    </div>
+
+    <div id="level-indicator">
+        <div class="level-text">NIVEL <span id="current-level">1</span></div>
+        <div class="level-description" id="level-description"></div>
+    </div>
+
+    <script>
+        // Componente para el cursor personalizado
+        AFRAME.registerComponent('cursor-listener', {
+            init: function() {
+                this.el.addEventListener('mouseenter', () => {
+                    document.querySelector('.custom-cursor').classList.add('hovering');
+                });
+                
+                this.el.addEventListener('mouseleave', () => {
+                    document.querySelector('.custom-cursor').classList.remove('hovering');
+                });
+
+                this.el.addEventListener('click', (event) => {
+                    const parentEntity = this.el.parentElement;
+                    const fragmentId = parentEntity.id;
+                    const fragmentValue = fragmentId === 'code1' ? '3' : 
+                                       fragmentId === 'code2' ? '7' : 'A';
+                    
+                    // Prevenir múltiples clics
+                    if (parentEntity.getAttribute('data-clicked')) return;
+                    parentEntity.setAttribute('data-clicked', 'true');
+
+                    // Efecto de clic en el cursor
+                    const cursor = document.querySelector('.custom-cursor');
+                    cursor.classList.add('clicking');
+                    setTimeout(() => cursor.classList.remove('clicking'), 200);
+
+                    // Secuencia de animación
+                    this.animateCube(parentEntity, fragmentValue, fragmentId);
+                });
+            },
+
+            animateCube: function(parentEntity, fragmentValue, fragmentId) {
+                const cube = this.el;
+                
+                // 1. Efecto de mantener
+                cube.setAttribute('animation__hold', {
+                    property: 'scale',
+                    to: '1.2 1.2 1.2',
+                    dur: 500,
+                    easing: 'easeOutQuad'
+                });
+
+                // 2. Efecto de explosión
+                setTimeout(() => {
+                    // Crear partículas
+                    const position = cube.getAttribute('position');
+                    const particles = document.createElement('a-entity');
+                    particles.setAttribute('particle-system', {
+                        preset: 'dust',
+                        particleCount: 50,
+                        color: '#00ff00',
+                        size: 0.2,
+                        velocityValue: '0.5 0.5 0.5',
+                        velocitySpread: '0.5 0.5 0.5',
+                        accelerationValue: '0 0 0',
+                        accelerationSpread: '0 0 0',
+                        duration: 1
+                    });
+                    particles.setAttribute('position', position);
+                    parentEntity.appendChild(particles);
+
+                    // Animación de explosión
+                    cube.setAttribute('animation__explode', {
+                        property: 'scale',
+                        to: '2 2 2',
+                        dur: 500,
+                        easing: 'easeOutQuad'
+                    });
+
+                    cube.setAttribute('animation__fade', {
+                        property: 'material.opacity',
+                        to: 0,
+                        dur: 500,
+                        easing: 'easeOutQuad'
+                    });
+
+                    // 3. Recolectar fragmento
+                    setTimeout(() => {
+                        collectCodeFragment(fragmentValue, fragmentId);
+                        parentEntity.removeChild(particles);
+                    }, 500);
+                }, 1000);
+            }
+        });
+
+        // Variables globales del juego
+        let collectedFragments = 0;
+        let timeRemaining = 60; // 1 minuto
+        let clickedButtons = new Set();
+        let powerLevel = 100;
+        let score = 0;
+        let combo = 1;
+        let currentLevel = 1;
+        let fragmentsRequired = 3;
+        let gameSpeed = 1;
+        let obstacles = [];
+        let powerUps = [];
+        let lastCollectionTime = 0;
+        const COMBO_TIMEOUT = 3000;
+        const BASE_POINTS = 100;
+        const COMBO_MULTIPLIER = 1.5;
+        const sounds = {
+            collect: new Howl({ src: ['sounds/collect.mp3'] }),
+            win: new Howl({ src: ['sounds/win.mp3'] }),
+            alert: new Howl({ src: ['sounds/alert.mp3'], loop: true }),
+            ambient: new Howl({ src: ['sounds/ambient.mp3'], loop: true, volume: 0.3 })
+        };
+
+        // Posiciones posibles para los cubos (puedes agregar más si lo deseas)
+        const cubePositions = [
+            { x: -4, y: 1.5, z: -5 },
+            { x: 4, y: 1.5, z: -5 },
+            { x: 0, y: 1.5, z: 5 },
+            { x: -3, y: 1.5, z: 3 },
+            { x: 3, y: 1.5, z: 3 },
+            { x: 0, y: 1.5, z: -8 },
+            { x: -5, y: 1.5, z: 0 },
+            { x: 5, y: 1.5, z: 0 },
+            { x: 2, y: 1.5, z: -7 },
+            { x: -2, y: 1.5, z: 7 }
+        ];
+        let usedPositions = new Set();
+
+        function getRandomPosition() {
+            // Elegir una posición no usada
+            let available = cubePositions.filter((_, idx) => !usedPositions.has(idx));
+            if (available.length === 0) {
+                usedPositions.clear();
+                available = cubePositions;
+            }
+            const idx = Math.floor(Math.random() * available.length);
+            const pos = available[idx];
+            // Guardar el índice usado
+            usedPositions.add(cubePositions.indexOf(pos));
+            return pos;
+        }
+
+        function spawnCube() {
+            const scene = document.querySelector('a-scene');
+            const pos = getRandomPosition();
+            const entityId = 'code-cube';
+            // Eliminar si ya existe
+            const old = document.getElementById(entityId);
+            if (old) old.parentNode.removeChild(old);
+            // Crear entidad
+            const entity = document.createElement('a-entity');
+            entity.setAttribute('id', entityId);
+            entity.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
+            entity.innerHTML = `
+                <a-box class="interactive-cube"
+                       src="empresalogo.jpg"
+                       scale="0.8 0.8 0.8"
+                       material="shader: standard; metalness: 0.8; roughness: 0.2; color: #ffffff"
+                       animation="property: position; to: ${pos.x} ${pos.y + 0.5} ${pos.z}; dir: alternate; dur: 3000; loop: true; easing: easeInOutSine"
+                       animation__rotation="property: rotation; to: 0 360 0; loop: true; dur: 15000; easing: linear"
+                       raycaster="objects: .interactive-cube"
+                       cursor-listener>
+                </a-box>
+            `;
+            scene.appendChild(entity);
+        }
+
+        // INICIALIZACIÓN DEL JUEGO
+        document.addEventListener('DOMContentLoaded', function() {
+            const cursor = document.querySelector('.custom-cursor');
+            document.body.style.cursor = 'none';
+            
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            });
+
+            document.addEventListener('mousedown', () => {
+                cursor.classList.add('clicking');
+            });
+
+            document.addEventListener('mouseup', () => {
+                cursor.classList.remove('clicking');
+            });
+
+            const scene = document.querySelector('a-scene');
+            scene.addEventListener('loaded', function() {
+                // Configurar el cursor de A-Frame
+                scene.setAttribute('cursor', {
+                    rayOrigin: 'mouse',
+                    fuse: false,
+                    maxDistance: 30,
+                    timeout: 0,
+                    visible: false
+                });
+
+                // Configurar el raycaster global
+                scene.setAttribute('raycaster', {
+                    objects: '.interactive-cube',
+                    enabled: true
+                });
+
+                // Ocultar el cursor en el canvas
+                const canvas = scene.canvas;
+                if (canvas) {
+                    canvas.style.cursor = 'none';
+                }
+
+                // Iniciar el juego
+                setTimeout(() => {
+                    document.getElementById('logo-container').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('logo-container').style.display = 'none';
+                        document.getElementById('game-scene').style.opacity = '1';
+                        document.getElementById('hud').style.display = 'block';
+                        document.getElementById('controls-panel').classList.add('visible');
+                        document.getElementById('progress-container').style.display = 'block';
+                        document.getElementById('power-meter').style.display = 'block';
+                        document.getElementById('score-display').style.display = 'block';
+                        showLevelIndicator();
+                        sounds.ambient.play();
+                        
+                        // Mostrar la alerta inicial inmediatamente
+                        showAlert();
+                        
+                        startTimer();
+                    }, 1500);
+                }, 5000);
+            });
+        });
+
+        // TEMPORIZADOR FLUIDO Y BARRA DE COLOR DINÁMICO (solo inicia tras el primer cubo)
+        let powerTimerStarted = false;
+        let powerTimerRunning = true;
+        function startPowerTimer() {
+            if (powerTimerStarted) return;
+            powerTimerStarted = true;
+            powerTimerRunning = true;
+            document.getElementById('power-meter').style.display = 'block';
+            let start = Date.now();
+            let duration = 60 * 1000; // 1 minuto en ms
+            function animate() {
+                if (!powerTimerRunning) return;
+                let now = Date.now();
+                let elapsed = now - start;
+                let remaining = Math.max(0, duration - elapsed);
+                timeRemaining = Math.ceil(remaining / 1000);
+                let percent = (remaining / duration) * 100;
+                powerLevel = percent;
+                // Cambiar color de la barra según el tiempo
+                let color = '#00ff00';
+                if (percent <= 33) {
+                    color = '#ff0000';
+                } else if (percent <= 66) {
+                    color = '#ffff00';
+                }
+                const powerLevelDiv = document.getElementById('power-level');
+                const powerTimerSpan = document.getElementById('power-timer');
+                powerLevelDiv.style.width = percent + '%';
+                powerLevelDiv.style.background = color;
+                powerTimerSpan.textContent = timeRemaining + 's';
+                if (remaining > 0 && powerTimerRunning) {
+                    requestAnimationFrame(animate);
+                } else if (remaining <= 0 && powerTimerRunning) {
+                    powerTimerRunning = false;
+                    gameOver();
+                }
+            }
+            animate();
+        }
+
+        // GAME OVER
+        function gameOver() {
+            const alert = document.getElementById('alert-message');
+            if (!alert) return;
+            alert.style.background = 'rgba(40,0,0,0.97)';
+            alert.style.borderColor = '#f00';
+            alert.style.animation = 'alert-pulse 1.5s infinite';
+            alert.style.boxShadow = '0 0 40px 10px #f00a, 0 0 30px #f003';
+            document.getElementById('alert-text').innerHTML = '<span style="font-size:2.7rem;vertical-align:middle;">🧑‍💻</span> <span style="color:#ff3333;">¡TE HAN HACKEADO!</span>';
+            document.getElementById('alert-subtext').innerHTML = '<span style="color:#ffaaaa;">El sistema ha sido comprometido.<br>Intenta ser más rápido la próxima vez.</span>';
+            // Agregar el botón de reintentar dinámicamente
+            let retryBtn = document.createElement('button');
+            retryBtn.className = 'retry-btn';
+            retryBtn.textContent = 'Reintentar';
+            retryBtn.onclick = function() { location.reload(); };
+            retryBtn.style.marginTop = '25px';
+            document.getElementById('alert-subtext').appendChild(retryBtn);
+            alert.style.display = 'block';
+            alert.offsetHeight;
+            alert.classList.add('visible');
+            if (sounds.ambient) sounds.ambient.stop();
+            if (sounds.alert) sounds.alert.play();
+        }
+
+        // Función mejorada para mostrar la alerta
+        function showAlert() {
+            console.log('Mostrando alerta...'); // Debug
+            const alert = document.getElementById('alert-message');
+            if (!alert) {
+                console.error('No se encontró el elemento de alerta');
+                return;
+            }
+
+            // Configurar la alerta inicial
+            alert.style.background = "rgba(200, 0, 0, 0.9)";
+            alert.style.borderColor = "#f00";
+            alert.style.animation = "alert-pulse 1.5s infinite";
+            alert.style.boxShadow = "0 0 30px rgba(255, 0, 0, 0.3)";
+            
+            document.getElementById('alert-text').textContent = "¡ESTÁN A PUNTO DE HACKEARTE!";
+            document.getElementById('alert-subtext').textContent = "Rápido, toca los antivirus para escapar";
+
+            // Mostrar la alerta
+            alert.style.display = 'block';
+            alert.offsetHeight; // Forzar reflow
+            alert.classList.add('visible');
+            
+            // Reproducir sonido de alerta
+            if (sounds.alert) {
+                sounds.alert.play();
+            }
+            
+            // Ocultar la alerta después de 5 segundos
+            setTimeout(() => {
+                alert.classList.remove('visible');
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                    if (sounds.alert) {
+                        sounds.alert.stop();
+                    }
+                }, 500);
+            }, 5000);
+        }
+
+        // Función para crear y animar el popup de puntos
+        function createScorePopup(points, x, y) {
+            const popup = document.createElement('div');
+            popup.className = 'score-popup';
+            popup.textContent = `+${points}`;
+            popup.style.left = `${x}px`;
+            popup.style.top = `${y}px`;
+            document.body.appendChild(popup);
+
+            // Activar la animación
+            requestAnimationFrame(() => {
+                popup.classList.add('active');
+            });
+
+            // Eliminar el popup después de la animación
+            setTimeout(() => {
+                document.body.removeChild(popup);
+            }, 1000);
+        }
+
+        // Función actualizada para actualizar la puntuación
+        function updateScore(points) {
+            const currentTime = Date.now();
+            
+            // Verificar si el combo está activo
+            if (currentTime - lastCollectionTime < COMBO_TIMEOUT) {
+                combo += 0.5;
+                points = Math.floor(points * combo);
+            } else {
+                combo = 1;
+            }
+            
+            lastCollectionTime = currentTime;
+            score += points;
+
+            // Actualizar la visualización
+            document.getElementById('score').textContent = score;
+            document.getElementById('combo').textContent = `x${combo.toFixed(1)}`;
+
+            // Crear popup de puntos en la posición del cursor
+            const cursor = document.querySelector('.custom-cursor');
+            const rect = cursor.getBoundingClientRect();
+            createScorePopup(points, rect.left, rect.top);
+
+            // Efecto visual en el contador de puntuación
+            const scoreDisplay = document.getElementById('score-display');
+            scoreDisplay.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                scoreDisplay.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Función para actualizar el nivel de poder
+        function updatePowerLevel(amount) {
+            powerLevel = Math.min(100, Math.max(0, powerLevel + amount));
+            document.getElementById('power-level').style.width = `${powerLevel}%`;
+            
+            // Efecto visual en la barra de poder
+            const powerMeter = document.getElementById('power-meter');
+            powerMeter.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                powerMeter.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Función para mostrar alerta de victoria
+        function showVictoryAlert() {
+            console.log('Mostrando alerta de victoria...'); // Debug
+            const alert = document.getElementById('alert-message');
+            if (!alert) {
+                console.error('No se encontró el elemento de alerta');
+                return;
+            }
+
+            // Configurar la alerta de victoria
+            alert.style.background = "rgba(0, 150, 0, 0.9)";
+            alert.style.borderColor = "#0f0";
+            alert.style.animation = "none";
+            alert.style.boxShadow = "0 0 30px rgba(0, 255, 0, 0.3)";
+            
+            document.getElementById('alert-text').textContent = "¡ESCAPE EXITOSO!";
+            document.getElementById('alert-subtext').textContent = "Anomalía desactivada";
+            
+            // Mostrar la alerta
+            alert.style.display = 'block';
+            alert.offsetHeight; // Forzar reflow
+            alert.classList.add('visible');
+            
+            // Reproducir sonidos
+            if (sounds.win) sounds.win.play();
+            if (sounds.ambient) sounds.ambient.stop();
+            
+            // Ocultar la alerta después de 3 segundos
+            setTimeout(() => {
+                alert.classList.remove('visible');
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 500);
+            }, 3000);
+        }
+
+        // Modificar collectCodeFragment para iniciar el temporizador tras el primer cubo
+        function collectCodeFragment(fragment, elementId) {
+            if (clickedButtons.has(elementId)) return;
+            clickedButtons.add(elementId);
+            collectedFragments++;
+            sounds.collect.play();
+            // Iniciar el temporizador de poder tras el primer cubo
+            if (collectedFragments === 1) {
+                startPowerTimer();
+            }
+            // Detener el temporizador si se alcanza la meta
+            if (collectedFragments === fragmentsRequired) {
+                powerTimerRunning = false;
+            }
+            // Calcular puntos basados en el tiempo restante
+            const timeBonus = Math.floor(timeRemaining / 10);
+            const totalPoints = BASE_POINTS + timeBonus;
+            updateScore(totalPoints);
+            updatePowerLevel(10);
+            const fragmentEntity = document.getElementById(elementId);
+            if (fragmentEntity) {
+                setTimeout(() => {
+                    // Eliminar solo el cubo, no otros elementos
+                    fragmentEntity.parentNode.removeChild(fragmentEntity);
+                    // Si no se ha llegado al objetivo, generar uno nuevo
+                    if (collectedFragments < fragmentsRequired) {
+                        spawnCube();
+                    }
+                }, 1000);
+            }
+            document.getElementById('collected-fragments').textContent = `${collectedFragments}/${fragmentsRequired}`;
+            if (collectedFragments === fragmentsRequired) {
+                const exitPortal = document.getElementById('exit-portal');
+                if (exitPortal) {
+                    exitPortal.setAttribute('visible', 'true');
+                }
+            }
+            checkLevelProgress();
+        }
+
+        // Función para manejar el escape
+        function escapeSystem() {
+            if (collectedFragments === fragmentsRequired) {
+                showVictoryAlert();
+                // Opcional: ocultar el portal después de un tiempo
+                setTimeout(() => {
+                    const exitPortal = document.getElementById('exit-portal');
+                    if (exitPortal) {
+                        exitPortal.setAttribute('visible', 'false');
+                    }
+                }, 3000);
+            }
+        }
+
+        // Función mejorada para controlar el panel
+        function toggleControls(action) {
+            const panel = document.getElementById('controls-panel');
+            const button = document.querySelector('.minimize-button');
+            
+            if (action === 'minimize') {
+                panel.classList.toggle('minimized');
+                button.classList.toggle('minimized');
+                
+                // Asegurar que el botón siempre sea visible y funcional
+                button.style.display = 'flex';
+                button.style.pointerEvents = 'auto';
+
+                // Añadir efecto de sonido
+                const clickSound = new Audio('sounds/click.mp3');
+                clickSound.volume = 0.3;
+                clickSound.play().catch(() => {}); // Ignorar errores si el sonido no está disponible
+            }
+        }
+
+        // Mejorar la experiencia VR
+        document.addEventListener('DOMContentLoaded', function() {
+            const scene = document.querySelector('a-scene');
+            
+            // Configurar el botón de minimizar
+            const minimizeButton = document.querySelector('.minimize-button');
+            if (minimizeButton) {
+                minimizeButton.style.display = 'flex';
+                minimizeButton.style.pointerEvents = 'auto';
+                
+                // Añadir efecto hover con sonido
+                minimizeButton.addEventListener('mouseenter', () => {
+                    const hoverSound = new Audio('sounds/hover.mp3');
+                    hoverSound.volume = 0.2;
+                    hoverSound.play().catch(() => {});
+                });
+            }
+
+            // Escuchar cambios en el estado VR
+            scene.addEventListener('enter-vr', () => {
+                const vrButton = document.querySelector('.a-enter-vr-button');
+                if (vrButton) {
+                    vrButton.classList.add('exit');
+                }
+                // Asegurar que los controles sean visibles en VR
+                const controlsPanel = document.getElementById('controls-panel');
+                if (controlsPanel) {
+                    controlsPanel.classList.add('visible');
+                }
+            });
+
+            scene.addEventListener('exit-vr', () => {
+                const vrButton = document.querySelector('.a-enter-vr-button');
+                if (vrButton) {
+                    vrButton.classList.remove('exit');
+                }
+                // Asegurar que los controles sean visibles al salir de VR
+                const controlsPanel = document.getElementById('controls-panel');
+                if (controlsPanel) {
+                    controlsPanel.classList.add('visible');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
